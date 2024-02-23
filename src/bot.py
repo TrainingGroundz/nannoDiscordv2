@@ -1,3 +1,5 @@
+import asyncio
+import difflib
 import os
 import discord
 from discord.ext import commands
@@ -22,13 +24,64 @@ class Client(commands.Bot):
     async def setup_hook(self):
         self.add_view(DropdownView())
 
+    async def on_command_error(self, ctx, error):
+        await ctx.message.delete()
+
+        def similar(a, b):
+            return difflib.SequenceMatcher(None, a, b).ratio()
+
+        command_parts = ctx.message.content.split()
+        cmd = command_parts[0][1:]
+
+        if len(command_parts) > 1:
+            full_command = ' '.join(command_parts[1:])
+        else:
+            full_command = cmd
+
+        command_list = [command.name for command in self.commands]
+
+        similar_commands = difflib.get_close_matches(full_command, command_list,
+                                                     cutoff=0.5)
+
+        manual_similar_commands = [command for command in command_list if
+                                   similar(full_command, command) > 0.5]
+
+        all_similar_commands = set(similar_commands + manual_similar_commands)
+
+        if all_similar_commands:
+            suggestions = '`\n➡️ `'.join(all_similar_commands)
+            embed = discord.Embed(
+                title='Erro ❌',
+                description=f'Comando não encontrado. Você quis dizer:\n'
+                            f'\n➡️ `{suggestions}`',
+                color=discord.Colour.red()
+            )
+            msg = await ctx.send(embed=embed)
+            await asyncio.sleep(5)
+            await msg.delete()
+        else:
+            embed = discord.Embed(
+                title='Erro ❌',
+                description=f'Comando não encontrado',
+                color=discord.Color.red()
+            )
+            msg = await ctx.send(embed=embed)
+            await asyncio.sleep(2)
+            await msg.delete()
+
 
 client = Client()
 
 cogs_list = [
     'games.numero',
     'games.sequestro',
-    'moderation.atendimento'
+    'moderation.atendimento',
+    'moderation.punicoes',
+    'moderation.clear',
+    'moderation.roles',
+    'economy.economia',
+    'util.avatar',
+    'interaction.echo'
 ]
 
 
@@ -39,7 +92,7 @@ async def load_cogs():
         cog_name = cog.split('.')[-1]
         loaded_cogs.append(f'{cog_name.capitalize()} ✅')
     loaded_cogs_str = '\n'.join(loaded_cogs)
-    print(f'Os seguintes comandos foram carregados:\n{loaded_cogs_str}')
+    print(f'Foram carregados:\n{loaded_cogs_str}')
 
 
 client.run(os.getenv('TOKEN_BOT'))
