@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from src.database import *
+from src.database.database import *
 import asyncio
 import random
 
