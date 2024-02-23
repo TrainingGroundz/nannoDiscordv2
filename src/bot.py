@@ -2,7 +2,9 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from src.cogs.moderation import atendimento
 
+DropdownView = atendimento.DropdownView
 load_dotenv()
 
 
@@ -17,15 +19,16 @@ class Client(commands.Bot):
         await load_cogs()
         print(f'(＾◡＾)っ Sou o {self.user.name} e acabei de me conectar')
 
-    # async def setup_hook(self):
-    #     self.add_view(DropdownView()
+    async def setup_hook(self):
+        self.add_view(DropdownView())
 
 
 client = Client()
 
 cogs_list = [
     'games.numero',
-    'games.sequestro'
+    'games.sequestro',
+    'moderation.atendimento'
 ]
 
 
@@ -37,7 +40,6 @@ async def load_cogs():
         loaded_cogs.append(f'{cog_name.capitalize()} ✅')
     loaded_cogs_str = '\n'.join(loaded_cogs)
     print(f'Os seguintes comandos foram carregados:\n{loaded_cogs_str}')
-
 
 
 client.run(os.getenv('TOKEN_BOT'))
