@@ -1,0 +1,7 @@
+discord
+pymongo
+python-dotenv
+DateTime
+pillow
+requests
+pytz
