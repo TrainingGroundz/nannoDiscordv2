@@ -200,7 +200,7 @@ class CreateTicket(discord.ui.View):
             f"Criei um ticket para você! {ticket.mention}", ephemeral=True
         )
         await ticket.send(f"Mencionando staff: {mod.mention}")
-        await asyncio.sleep(5)
+        await asyncio.sleep(0.5)
         await ticket.purge(limit=1)
         await ticket.send(
             f"📩  **|** {interaction.user.mention} ticket criado!"
@@ -270,7 +270,7 @@ class Verificacao(discord.ui.View):
             ephemeral=True,
         )
         await ticket.send(f"Mencionando staff: {mod.mention}")
-        await asyncio.sleep(5)
+        await asyncio.sleep(0.5)
         await ticket.purge(limit=1)
         await ticket.send(
             f"📩  **|** {interaction.user.mention} ticket criado!"
@@ -329,7 +329,7 @@ class Verificacao(discord.ui.View):
             f"Criei um ticket para você! {ticket.mention}", ephemeral=True
         )
         await ticket.send(f"Mencionando staff: {mod.mention}")
-        await asyncio.sleep(5)
+        await asyncio.sleep(0.5)
         await ticket.purge(limit=1)
         await ticket.send(
             f"📩  **|** {interaction.user.mention} ticket criado!"
@@ -387,7 +387,7 @@ class Verificacao(discord.ui.View):
             f"Criei um ticket para você! {ticket.mention}", ephemeral=True
         )
         await ticket.send(f"Mencionando staff: {mod.mention}")
-        await asyncio.sleep(5)
+        await asyncio.sleep(0.5)
         await ticket.purge(limit=1)
 
         await ticket.send(
@@ -436,7 +436,7 @@ class AtendimentoCog(commands.Cog):
             )
 
             await ctx.channel.edit(locked=True)
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
 
             reacoes = ["😡", "😤", "🙂", "😄"]
             msg = await ctx.send(
@@ -454,7 +454,7 @@ class AtendimentoCog(commands.Cog):
                 return user == ctx.author and str(reaction.emoji) in reacoes
 
             try:
-                reaction, _ = await client.wait_for(
+                reaction, _ = await self.client.wait_for(
                     "reaction_add", timeout=60.0, check=check
                 )
 
