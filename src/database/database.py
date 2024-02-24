@@ -183,3 +183,31 @@ async def checar_avisos(usuario):
     filtro = {'discord_id': usuario.id}
     resultado = usuarios.find(filtro)
     return resultado.__getitem__(0)['contagem_de_avisos']
+
+
+async def adicionar_roubo(usuario):
+    await novo_usuario(usuario)
+    filtro = {'discord_id': usuario.id}
+    usuarios.update_one(filtro, {'$inc': {'roubos': 1}})
+
+
+async def zerar_roubos():
+    usuarios.update_many({}, update={'$set': {'roubos': 0}})
+
+
+async def checar_roubos(usuario):
+    await novo_usuario(usuario)
+    filtro = {'discord_id': usuario.id}
+    resultado = list(usuarios.find(filtro))
+
+    if len(resultado) > 0:
+        usuario_atual = resultado[0]
+
+        if 'roubos' not in usuario_atual:
+            usuarios.update_one(filtro, {'$set': {'roubos': 0}})
+            return 0
+        else:
+            return usuario_atual['roubos']
+
+
+
