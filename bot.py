@@ -26,48 +26,49 @@ class Client(commands.Bot):
         self.add_view(DropdownView())
 
     async def on_command_error(self, ctx, error):
-        try:
-            await ctx.message.delete()
-        except discord.errors.NotFound:
-            pass
-
-        def similar(a, b):
-            return difflib.SequenceMatcher(None, a, b).ratio()
-
-        command_parts = ctx.message.content.split()
-        cmd = command_parts[0][1:]
-
-        if len(command_parts) > 1:
-            full_command = ' '.join(command_parts[1:])
-        else:
-            full_command = cmd
-
-        command_list = [command.name for command in self.commands]
-
-        similar_commands = difflib.get_close_matches(full_command, command_list,
-                                                     cutoff=0.5)
-
-        manual_similar_commands = [command for command in command_list if
-                                   similar(full_command, command) > 0.5]
-
-        all_similar_commands = set(similar_commands + manual_similar_commands)
-
-        if all_similar_commands:
-            suggestions = '`\n➡️ `'.join(all_similar_commands)
-            embed = discord.Embed(
-                title='Erro ❌',
-                description=f'Comando não encontrado. Você quis dizer:\n'
-                            f'\n➡️ `{suggestions}`',
-                color=discord.Colour.red()
-            )
-            msg = await ctx.send(embed=embed)
-            await asyncio.sleep(5)
+        if isinstance(error, commands.CommandNotFound):
             try:
-                await msg.delete()
+                await ctx.message.delete()
             except discord.errors.NotFound:
                 pass
-        else:
-            pass
+
+            def similar(a, b):
+                return difflib.SequenceMatcher(None, a, b).ratio()
+
+            command_parts = ctx.message.content.split()
+            cmd = command_parts[0][1:]
+
+            if len(command_parts) > 1:
+                full_command = ' '.join(command_parts[1:])
+            else:
+                full_command = cmd
+
+            command_list = [command.name for command in self.commands]
+
+            similar_commands = difflib.get_close_matches(full_command, command_list,
+                                                         cutoff=0.5)
+
+            manual_similar_commands = [command for command in command_list if
+                                       similar(full_command, command) > 0.5]
+
+            all_similar_commands = set(similar_commands + manual_similar_commands)
+
+            if all_similar_commands:
+                suggestions = '`\n➡️ `'.join(all_similar_commands)
+                embed = discord.Embed(
+                    title='Erro ❌',
+                    description=f'Comando não encontrado. Você quis dizer:\n'
+                                f'\n➡️ `{suggestions}`',
+                    color=discord.Colour.red()
+                )
+                msg = await ctx.send(embed=embed)
+                await asyncio.sleep(5)
+                try:
+                    await msg.delete()
+                except discord.errors.NotFound:
+                    pass
+            else:
+                pass
 
     async def on_message(self, message):
         if message.author == self.user:
