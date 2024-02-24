@@ -69,6 +69,8 @@ class Client(commands.Bot):
                     pass
             else:
                 pass
+        else:
+            raise error
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -133,6 +135,7 @@ client = Client()
 cogs_list = [
     'games.numero',
     'games.sequestro',
+    'games.roubo',
     'moderation.atendimento',
     'moderation.punicoes',
     'moderation.clear',
