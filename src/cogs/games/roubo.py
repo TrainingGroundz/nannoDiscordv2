@@ -1,28 +1,14 @@
 import asyncio
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 from src.database.database import *
 import random
-import datetime
-import pytz
 
 
 class RouboCog(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.my_loop.start()
         self.members_in_theft = set()
-
-    @tasks.loop(seconds=30)
-    async def my_loop(self):
-        agora_gmt = datetime.datetime.now(pytz.timezone('GMT'))
-        meia_noite_gmt = (agora_gmt.replace(hour=0,
-                                            minute=0,
-                                            second=0,
-                                            microsecond=0) + datetime.timedelta(days=1))
-
-        if agora_gmt >= meia_noite_gmt:
-            await zerar_roubos()
 
     @commands.command(name='roubar')
     @commands.has_role(983012540663599114)
@@ -37,7 +23,7 @@ class RouboCog(commands.Cog):
         if ctx.author.id == member.id:
             await ctx.send(f'{ctx.author.mention} Tá doido maluco? Roubar '
                            f'apenas os outros coleguinhas!')
-            await ctx.command.reset_cooldown(ctx)
+            ctx.command.reset_cooldown(ctx)
             return
 
         if member_balance < 1:
@@ -45,19 +31,19 @@ class RouboCog(commands.Cog):
                            f' tá mais seco que deserto! 😅 {ctx.author.mention},'
                            f' melhor dar uma olhada em outras pikas, porque '
                            f'esse alguém ja passou a mão. 💸')
-            await ctx.command.reset_cooldown(ctx)
+            ctx.command.reset_cooldown(ctx)
             return
 
         if author_balance < 1:
             await ctx.send(f'{ctx.author.mention}Você precisa de pikas pra '
                            f'poder roubar, ganhe em <#1187065450459316364>')
-            await ctx.command.reset_cooldown(ctx)
+            ctx.command.reset_cooldown(ctx)
             return
 
         if roubos >= 2:
             await ctx.send(f'{ctx.author.mention} Ladrãozinho safado, '
                            f'tente roubar novamante amanhã!')
-            await ctx.command.reset_cooldown(ctx)
+            ctx.command.reset_cooldown(ctx)
             return
 
         if ctx.author.id in self.members_in_theft or member.id in self.members_in_theft:
@@ -65,6 +51,7 @@ class RouboCog(commands.Cog):
                 "Desculpe, mas um dos membros está atualmente ocupado em uma "
                 "`operação de roubo` 🕵️‍♂️💰.\nFique ligado o roubo pode acabar "
                 "a qualquer momento! 🕒😄")
+            ctx.command.reset_cooldown(ctx)
             return
 
         try:
