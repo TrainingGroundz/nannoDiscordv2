@@ -5,3 +5,4 @@ DateTime
 pillow
 requests
 pytz
+APScheduler
