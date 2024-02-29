@@ -122,17 +122,17 @@ class Punicoes(discord.ui.Select):
         author_id = self.id_author
 
         guild = interaction.guild
-        member = guild.get_member(membro.id)
+        member = await self.client.fetch_user(membro.id)
+        membro_fora = await self.client.fetch_user(membro.id)
         author_member = guild.get_member(author_id)
-        mutes = await checar_mutes(member)
         duracao = timedelta(minutes=tempo)
         canal_punicoes = self.client.get_channel(983234083918344222)
-        contagem_avisos = await checar_avisos(member)
-        contagem_mutes = await checar_mutes(member)
 
         if interaction.user.id == author_member.id:
-            if member:
-                if punicao == "aviso":
+            if member or membro_fora:
+                if punicao == "aviso" and member:
+                    contagem_mutes = await checar_mutes(member)
+                    contagem_avisos = await checar_avisos(member)
                     if contagem_avisos < 3 or contagem_avisos % 3 != 0:
                         await canal_punicoes.send(
                             f"O membro **{member.mention}** recebeu uma punição do "
@@ -242,7 +242,7 @@ class Punicoes(discord.ui.Select):
                             f" acredite que cometemos um erro.\n 2. Aguardar até o Natal para poder"
                             f" entrar novamente em https://discord.gg/edp2"
                         )
-                        await member.ban()
+                        await guild.ban(membro_fora)
                     await interaction.followup.send(
                         f"Aviso enviado para **{member.display_name}**: {reason}",
                         ephemeral=True,
@@ -260,16 +260,21 @@ class Punicoes(discord.ui.Select):
                         f"{reason}\n\n*Banimento aplicado*",
                         ephemeral=True,
                     )
-                    await member.send(
-                        f"⚠️ Você recebeu uma punição do servidor 😈 EDP 😈"
-                        f"\n\n__Motivo:__  **{reason}**  \n\n__Punição:__  "
-                        f"**[{self.punicao.capitalize()}]**\n\nO que fazer agora?"
-                        f" 1. Apelar a punição em https://discord.gg/4sdVrdVjbr caso"
-                        f" acredite que cometemos um erro.\n 2. Aguardar até o Natal para poder"
-                        f" entrar novamente em https://discord.gg/edp2"
-                    )
-                    await member.ban()
+
+                    membros = self.client.get_all_members()
+                    if member in membros:
+                        await member.send(
+                            f"⚠️ Você recebeu uma punição do servidor 😈 EDP 😈"
+                            f"\n\n__Motivo:__  **{reason}**  \n\n__Punição:__  "
+                            f"**[{self.punicao.capitalize()}]**\n\nO que fazer agora?"
+                            f" 1. Apelar a punição em https://discord.gg/4sdVrdVjbr caso"
+                            f" acredite que cometemos um erro.\n 2. Aguardar até o Natal para poder"
+                            f" entrar novamente em https://discord.gg/edp2"
+                        )
+                    await guild.ban(membro_fora)
+
                 elif punicao == "mute":
+                    contagem_mutes = await checar_mutes(member)
                     if contagem_mutes == 3:
                         await canal_punicoes.send(
                             f"**O membro {member.mention} recebeu {contagem_mutes}"
@@ -290,7 +295,7 @@ class Punicoes(discord.ui.Select):
                             f" entrar novamente em https://discord.gg/edp2"
                         )
                         await remover_mute(member, 3)
-                        await member.ban()
+                        await guild.ban(membro_fora)
                     else:
                         await member.timeout(duracao, reason=reason)
                         await interaction.followup.send(
