@@ -6,9 +6,10 @@ import random
 
 
 class RouboCog(commands.Cog):
+    members_in_theft = set()
+
     def __init__(self, client):
         self.client = client
-        self.members_in_theft = set()
 
     @commands.command(name='roubar')
     @commands.has_role(983012540663599114)
@@ -70,7 +71,7 @@ class RouboCog(commands.Cog):
             msg = await ctx.send(embed=embed_progress)
 
             if random.random() < chance_roubo:
-                max_roubo = 10000
+                max_roubo = 1000
                 quantia_roubo = random.randint(1,
                                                min(author_balance,
                                                    member_balance,
@@ -101,7 +102,7 @@ class RouboCog(commands.Cog):
                 await alterar_saldo(ctx.author, quantia_roubo)
                 await alterar_saldo(member, -quantia_roubo)
             else:
-                max_roubo = 10000
+                max_roubo = 1000
                 quantia_roubo = random.randint(1,
                                                min(author_balance,
                                                    member_balance,
