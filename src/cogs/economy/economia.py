@@ -5,6 +5,9 @@ from PIL import ImageFont, Image, ImageDraw
 from discord.ext import commands
 import random
 from src.database.database import *
+from src.cogs.games.roubo import RouboCog
+
+membros = RouboCog.members_in_theft
 
 
 class EconomyCog(commands.Cog):
@@ -41,6 +44,12 @@ class EconomyCog(commands.Cog):
                         user: discord.User = None,
                         quantidade: int = None):
 
+        if ctx.author.id in membros or user.id in membros:
+            await ctx.send(
+                "Desculpe, você não pode realizar operações financeiras durante"
+                " um roubo 💰")
+            return
+
         if not user or not quantidade:
             await ctx.send(
                 f"{ctx.author.mention} O comando deve ser usado da seguinte "
@@ -73,6 +82,12 @@ class EconomyCog(commands.Cog):
     async def _removepikas(self, ctx: commands.Context,
                            user: discord.User = None,
                            quantidade: int = None):
+
+        if ctx.author.id in membros or user.id in membros:
+            await ctx.send(
+                "Desculpe, você não pode realizar operações financeiras durante"
+                " um roubo 💰")
+            return
 
         if not user or not quantidade:
             await ctx.send(
@@ -153,6 +168,12 @@ class EconomyCog(commands.Cog):
     @commands.command(name="pagar")
     async def pagamento(self, ctx, usuario: discord.User, valor: int):
         moedas = await checar_saldo(ctx.author)
+        if ctx.author.id in membros or usuario.id in membros:
+            await ctx.send(
+                "Desculpe, você não pode realizar operações financeiras durante"
+                " um roubo 💰")
+            return
+
         if ctx.author.id == usuario.id:
             await ctx.send(f'Você não pode fazer uma transferência para si '
                            f'mesmo!')
