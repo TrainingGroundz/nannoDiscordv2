@@ -3,8 +3,6 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime
 import pytz
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.jobstores.mongodb import MongoDBJobStore
 
 
 load_dotenv()
@@ -12,11 +10,6 @@ load_dotenv()
 cliente = pymongo.MongoClient(os.getenv('MONGODB'))
 bancodedados = cliente['economia']
 usuarios = bancodedados['usuarios']
-
-
-jobstores = {
-    'default': MongoDBJobStore(database='apscheduler', client=cliente)
-}
 
 
 async def novo_usuario(usuario):
@@ -216,14 +209,3 @@ async def checar_roubos(usuario):
             return 0
         else:
             return usuario_atual['roubos']
-
-
-scheduler = AsyncIOScheduler(jobstores=jobstores)
-scheduler.add_job(zerar_roubos,
-                  trigger='cron',
-                  hour=0,
-                  minute=0,
-                  second=0,
-                  timezone='America/Sao_Paulo'
-                  )
-scheduler.start()
