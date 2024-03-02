@@ -1,6 +1,7 @@
 import asyncio
+from datetime import timedelta
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from src.database.database import *
 import random
 
@@ -10,6 +11,17 @@ class RouboCog(commands.Cog):
 
     def __init__(self, client):
         self.client = client
+        self.reset_time = datetime.now(tz=pytz.timezone('America/Sao_Paulo')) + timedelta(days=1)
+        self.reset.start()
+
+    @tasks.loop(seconds=60)
+    async def reset(self):
+        now = datetime.now(tz=pytz.timezone('America/Sao_Paulo'))
+        if now >= self.reset_time:
+            await zerar_roubos()
+            self.reset_time += timedelta(days=1)
+            interval = (self.reset_time - now).total_seconds()
+            self.reset.change_interval(seconds=interval)
 
     @commands.command(name='roubar')
     @commands.has_role(983012540663599114)

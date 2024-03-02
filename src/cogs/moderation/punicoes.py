@@ -122,11 +122,11 @@ class Punicoes(discord.ui.Select):
         author_id = self.id_author
 
         guild = interaction.guild
-        member = await self.client.fetch_user(membro.id)
+        member = guild.get_member(membro.id)
         membro_fora = await self.client.fetch_user(membro.id)
         author_member = guild.get_member(author_id)
         duracao = timedelta(minutes=tempo)
-        canal_punicoes = self.client.get_channel(983234083918344222)
+        canal_punicoes = self.client.get_channel(1161282878810882108)#983234083918344222
 
         if interaction.user.id == author_member.id:
             if member or membro_fora:
@@ -250,13 +250,13 @@ class Punicoes(discord.ui.Select):
 
                 elif punicao == "ban":
                     await canal_punicoes.send(
-                        f"O membro **{member.mention}** recebeu uma punição do "
+                        f"O membro **{membro_fora.mention}** recebeu uma punição do "
                         f"servidor 😈 EDP 😈 aplicada por {interaction.user.mention}"
                         f"\n\n__Motivo:__  **{reason}**\n\n__Punição:__  "
                         f"**[{self.punicao.capitalize()}]**"
                     )
                     await interaction.followup.send(
-                        f"Aviso enviado para **{member.display_name}**: "
+                        f"Aviso enviado para **{membro_fora.display_name}**: "
                         f"{reason}\n\n*Banimento aplicado*",
                         ephemeral=True,
                     )
@@ -297,6 +297,8 @@ class Punicoes(discord.ui.Select):
                         await remover_mute(member, 3)
                         await guild.ban(membro_fora)
                     else:
+                        contagem_avisos = await checar_avisos(member)
+                        contagem_mutes = await checar_mutes(member)
                         await member.timeout(duracao, reason=reason)
                         await interaction.followup.send(
                             f"Aviso enviado para **{member.display_name}**: "
@@ -315,7 +317,7 @@ class Punicoes(discord.ui.Select):
                             f"⚠️ Você recebeu uma punição do servidor 😈 EDP 😈"
                             f"\n\n__Motivo:__  **{reason}**  \n\n__Punição:__  "
                             f"**[{punicao.capitalize()} : {self.tempo} minutos || "
-                            f"Esse é o seu {mutes}º Mute]**\n\nReceber múltiplas "
+                            f"Esse é o seu {contagem_mutes}º Mute]**\n\nReceber múltiplas "
                             f"punições pode acarretar em mute eterno ou banimento!"
                             f"\n\nO que fazer agora?\nQueremos ajudar você a "
                             f"continuar no servidor. Para isso, é importante:\n> 1. "
@@ -367,7 +369,7 @@ class PunicoesCog(commands.Cog):
 
         id_author = ctx.author.id
         if mute is None:
-            mute = 40320
+            mute = 40319
         await novo_usuario(member)
         await adicionar_chaves(member)
         if punicao == "ban":
@@ -470,18 +472,18 @@ class PunicoesCog(commands.Cog):
                 await asyncio.sleep(5)
                 await ctx.message.delete()
 
-    @_punicao.error
-    async def _punicao_error(self, ctx, error):
-        canal = self.client.get_channel(983234083918344222)
-        if isinstance(error, commands.MissingPermissions):
-            await canal.send(
-                f"{ctx.author.mention} Olá pessoa, parece que você não tem "
-                "privilégios suficientes para executar esse comando 😞"
-            )
-        elif isinstance(error, commands.UserNotFound):
-            await canal.send(
-                f"{ctx.author.mention} Olá pessoa, parece que o usuário não"
-                f" foi encontrado 😞")
+    # @_punicao.error
+    # async def _punicao_error(self, ctx, error):
+    #     canal = self.client.get_channel(983234083918344222)
+    #     if isinstance(error, commands.MissingPermissions):
+    #         await canal.send(
+    #             f"{ctx.author.mention} Olá pessoa, parece que você não tem "
+    #             "privilégios suficientes para executar esse comando 😞"
+    #         )
+    #     elif isinstance(error, commands.UserNotFound):
+    #         await canal.send(
+    #             f"{ctx.author.mention} Olá pessoa, parece que o usuário não"
+    #             f" foi encontrado 😞")
 
     @commands.command(name="unban")
     @commands.has_permissions(ban_members=True)
@@ -494,9 +496,10 @@ class PunicoesCog(commands.Cog):
             await ctx.guild.unban(user, reason=None)
             embed_user = discord.Embed(
                 title="Membro desbanido!",
-                description=f"{user_id} já pode entrar novamente no servidor!",
-                color=0x00FF00,
+                description=f"**{user_id}** já pode entrar novamente no servidor!\n",
+                color=0x00FF00
             )
+            await canal.send(f"Autor da remoção: {ctx.author.mention}")
             await canal.send(embed=embed_user)
         except discord.NotFound:
             embed = discord.Embed(
@@ -515,7 +518,7 @@ class PunicoesCog(commands.Cog):
 
     @commands.command(name="unmute")
     @commands.has_permissions(ban_members=True)
-    async def _unmute(self, member: discord.Member):
+    async def _unmute(self, ctx: commands.Context,  member: discord.Member):
         mutado = member.is_timed_out()
         canal = self.client.get_channel(983234083918344222)
 
@@ -523,7 +526,7 @@ class PunicoesCog(commands.Cog):
             await member.edit(timed_out_until=None)
             await asyncio.sleep(1)
             await canal.send(
-                f"**A punição mute foi removida de {member.display_name}**")
+                f"**{ctx.author.mention} removeu o mute de {member.display_name}**")
             await member.send("Sua punição de **mute** foi removida!")
         else:
             await canal.send(
@@ -554,7 +557,8 @@ class PunicoesCog(commands.Cog):
             await remover_aviso(member, quantidade)
             await member.send(f"Você teve **{quantidade} aviso(s)** removido(s)!")
             await canal.send(
-                f"**{quantidade} aviso(s)** removido(s) de " f"{member.display_name}"
+                f"{ctx.author.mention} removeu **{quantidade} aviso(s)** de "
+                f"{member.display_name}"
             )
         else:
             return
@@ -586,7 +590,8 @@ class PunicoesCog(commands.Cog):
             await remover_mute(member, quantidade)
             await member.send(f"Você teve **{quantidade} mute(s)** removido(s)!")
             await canal.send(
-                f"**{quantidade} mute(s)** removido de " f"{member.display_name}")
+                f"{ctx.author.mention} removeu **{quantidade} mute(s)** de "
+                f"{member.display_name}")
 
     @_removermutes.error
     async def _removermutes_error(self, ctx, error):
