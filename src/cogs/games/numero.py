@@ -10,10 +10,16 @@ class NumeroSecretoCog(commands.Cog):
         self.client = client
 
     @commands.command(name='n')
-    @commands.cooldown(1, 60, commands.BucketType.guild)
+    @commands.cooldown(1, 120, commands.BucketType.guild)
     async def n(self, ctx):
-        inicio = random.randint(50, 3500)
-        intervalo = 1500
+        menor_valor = 1
+        intervalo = 3000
+        valor_maximo = 9999
+
+        if menor_valor + intervalo > valor_maximo:
+            menor_valor = valor_maximo - intervalo
+
+        inicio = random.randint(menor_valor, menor_valor + intervalo)
         fim = inicio + intervalo
         porao_channel = self.client.get_channel(1187065450459316364)
         vip = ctx.guild.get_role(983012540663599114)
@@ -94,6 +100,7 @@ class NumeroSecretoCog(commands.Cog):
 
         tentativas_restantes = 7
         numero_invalido = 0
+        total_pikas_ganhos = 0
 
         try:
             while tentativas_restantes > 0:
@@ -177,19 +184,47 @@ class NumeroSecretoCog(commands.Cog):
                     com_vip = "já está registrado"
                     sem_vip = "foi registrado"
                     tem_vip = vip in ctx.author.roles
+                    valores_acertos = [
+                        (30000,
+                         "🚀 Você acertou rapidinho!\n"
+                         "Parabéns, mestre dos números!"),
+                        (27000,
+                         "🎉 Acertou na segunda tentativa!\n"
+                         "Muito bom, está afiado!"),
+                        (23000,
+                         "✨ Acertou na terceira tentativa!\n"
+                         "Continue assim, você é um gênio!"),
+                        (18000,
+                         "🔍 Acertou na quarta tentativa!\n"
+                         "Está ficando quente, continue!"),
+                        (13000,
+                         "🎯 Acertou na quinta tentativa!\n"
+                         "Não desista, a vitória está próxima!"),
+                        (7000,
+                         "💪 Acertou na sexta tentativa!\n"
+                         "Você está quase lá, persista!"),
+                        (5000,
+                         "⏰ Acertou na última tentativa!\n"
+                         "Por pouco, mas você conseguiu!"),
+                    ]
+
+                    total_pikas_ganhos, motivo = valores_acertos[
+                        7 - tentativas_restantes]
+
                     mensagem_registro = (
                         (
                             f"🌟 {ctx.author.mention} {com_vip} no "
                             f"<@&983012540663599114> "
-                            f"<:anime_popo_face:1013232728545697802>"
-                            f"\nForam adicionadas 5000 **pikas** "
-                            f":moneybag: no seu saldo"
+                            f"<:anime_popo_face:1013232728545697802>\nForam adicionadas "
+                            f"{total_pikas_ganhos} **pikas** "
+                            f":moneybag: no seu saldo.\n**{motivo}**"
                         )
                         if tem_vip
                         else (
                             f"{ctx.author.mention} {sem_vip} no <@&983012540663599114>"
-                            f" <:anime_popo_face:1013232728545697802>\n Foram "
-                            f"adicionadas 5000 **pikas** :moneybag: no seu saldo"
+                            f" <:anime_popo_face:1013232728545697802>\nForam adicionadas "
+                            f"{total_pikas_ganhos} **pikas** "
+                            f":moneybag: no seu saldo.\n**{motivo}**"
                         )
                     )
 
@@ -197,8 +232,7 @@ class NumeroSecretoCog(commands.Cog):
                         description=f"# Parabéns 👻!\n O número secreto era "
                                     f"**{numero_secreto}**\n{mensagem_registro}"
                                     f"\nVocê ganhou **1 VIP** e agora possui "
-                                    f"{saldo_vip + 1} VIPs\nUse o comando "
-                                    f"`-topvip` para ver sua posição!",
+                                    f"{saldo_vip + 1} VIPs",
                         color=discord.Color.light_grey(),
                     )
 
@@ -206,11 +240,15 @@ class NumeroSecretoCog(commands.Cog):
                         url="https://media1.tenor.com/m/W7g4Ay3jTCAAAAAd/nanno.gif"
                     )
 
+                    embed_acerto.set_footer(
+                        text="Use -topvip [página] ou -toppikas [página]\npara ver sua posição no ranking!"
+                             "\nEx: -topvip 2 mostrará a segunda página do ranking VIP.")
+
                     if tem_vip:
-                        await alterar_saldo(ctx.author, 5000)
+                        await alterar_saldo(ctx.author, total_pikas_ganhos)
                     else:
                         await ctx.author.add_roles(vip)
-                        await alterar_saldo(ctx.author, 5000)
+                        await alterar_saldo(ctx.author, total_pikas_ganhos)
 
                     await porao_channel.send(embed=embed_acerto)
                     await incrementar_vitorias(ctx.author)
