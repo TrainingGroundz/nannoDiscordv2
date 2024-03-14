@@ -10,7 +10,7 @@ class NumeroSecretoCog(commands.Cog):
         self.client = client
 
     @commands.command(name='n')
-    @commands.cooldown(1, 120, commands.BucketType.guild)
+    @commands.cooldown(1, 60, commands.BucketType.guild)
     async def n(self, ctx):
         menor_valor = 1
         intervalo = 3000
