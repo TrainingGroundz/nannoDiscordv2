@@ -107,18 +107,21 @@ class Client(commands.Bot):
                 if any(role.id == cargo_id for role in message.author.roles):
                     if 'corno' in message.content.lower() and message.mentions:
                         mentioned_member = message.mentions[0]
+                        await message.delete()
                         await message.channel.send(
                             f'{random.choice(messages_list_a)}'
                             f' {mentioned_member.mention}')
                         return
                     elif 'corna' in message.content.lower() and message.mentions:
                         mentioned_member = message.mentions[0]
+                        await message.delete()
                         await message.channel.send(
                             f'{random.choice(messages_list_b)}'
                             f' {mentioned_member.mention}')
                         return
                     elif 'gay' in message.content.lower() and message.mentions:
                         mentioned_member = message.mentions[0]
+                        await message.delete()
                         await message.channel.send(
                             f'{random.choice(messages_list_c)}'
                             f' {mentioned_member.mention}')
