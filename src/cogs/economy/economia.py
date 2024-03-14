@@ -130,27 +130,54 @@ class EconomyCog(commands.Cog):
     async def _daily(self, ctx):
         await novo_usuario(ctx.author)
         resultado, tempo_restante, timestamp = await checar_cooldown(ctx.author)
-        cargo_2x = [1047588622603407501]
+        cargos_multiplicadores = {
+            1047588622603407501: 2,
+            1210617957269643355: 3
+        }
         valor = random.randint(1000, 5000)
-        valor_2x = random.randint(2000, 10000)
-        msg_semvip = f"{ctx.author.mention} ganhou **{valor} pikas** hoje <:diabinha_pica:1132367768835076176>\nSabia que você poderia receber **2x mais pikas** com o <@&1047588622603407501>?\nAdquira agora em <#1047577913995829380>!"
-        msg_vip = f"{ctx.author.mention} ganhou **{valor_2x} pikas** hoje <:diabinha_pica:1132367768835076176>\nVocê ganhou **2x mais pikas** por ter <@&1047588622603407501>"
+
+        msg_semvip = (f"{ctx.author.mention} ganhou **{valor} pikas** "
+                      f"hoje <:diabinha_pica:1132367768835076176>\nSabia "
+                      f"que você poderia receber **2x mais pikas** com o "
+                      f"<@&1047588622603407501>?\nAdquira agora em "
+                      f"<#1047577913995829380>!")
 
         if not resultado:
-            if any(role.id in cargo_2x for role in ctx.author.roles):
+            multiplicador = 1
+            for role in ctx.author.roles:
+                if role.id in cargos_multiplicadores:
+                    multiplicador = max(multiplicador,
+                                        cargos_multiplicadores[role.id])
+
+            if multiplicador == 2:
+                valor *= multiplicador
+                msg_vip = (f"{ctx.author.mention} ganhou **{valor} pikas** "
+                           f"hoje <:diabinha_pica:1132367768835076176>\nVocê "
+                           f"ganhou **{multiplicador}x mais pikas** por ter "
+                           f"<@&1047588622603407501>")
                 await ctx.send(
-                    msg_vip, allowed_mentions=discord.AllowedMentions(roles=False)
+                    msg_vip,
+                    allowed_mentions=discord.AllowedMentions(roles=False)
                 )
-                await alterar_saldo(ctx.author, valor_2x)
-                await add_cooldown(ctx.author)
+            elif multiplicador == 3:
+                valor *= multiplicador
+                msg_3x = (f"Parabéns! {ctx.author.mention} passou a mão nos "
+                          f"ovos e recebeu **{valor} pikas** hoje "
+                          f"<:diabinha_pica:1132367768835076176>\nVocê "
+                          f"ganhou **{multiplicador}x mais pikas** por ter "
+                          f"<@&1210617957269643355>")
+                await ctx.send(
+                    msg_3x,
+                    allowed_mentions=discord.AllowedMentions(roles=False)
+                )
             else:
                 await ctx.send(
                     msg_semvip,
                     allowed_mentions=discord.AllowedMentions(roles=False)
                 )
 
-                await alterar_saldo(ctx.author, valor)
-                await add_cooldown(ctx.author)
+            await alterar_saldo(ctx.author, valor)
+            await add_cooldown(ctx.author)
         else:
             embed_daily = discord.Embed(
                 title="❌ Desculpe, você só pode usar o comando `daily` "
@@ -159,7 +186,8 @@ class EconomyCog(commands.Cog):
                             f" para coletar o prêmio diário de **pikas** "
                             f"novamente\nEspero você {ctx.author.mention} "
                             f"às `{timestamp}` 💕\n||Compreendo sua "
-                            f"necessidade de pegar **pikas**, mas regras são regras 😏||",
+                            f"necessidade de pegar **pikas**, mas regras "
+                            f"são regras 😏||",
                 color=discord.Color.from_rgb(255, 255, 255),
             )
 
@@ -202,14 +230,16 @@ class EconomyCog(commands.Cog):
     async def mostrar_rank(self, ctx, pagina=1, ordenar_por="moedas"):
         skip = (pagina - 1) * 5
 
-        campo_ordenacao = ordenar_por if ordenar_por in ['moedas', 'vitorias'] else 'moedas'
+        campo_ordenacao = ordenar_por if ordenar_por in ['moedas',
+                                                         'vitorias'] else 'moedas'
 
         membros_servidor = [membro.id for membro in ctx.guild.members]
 
         pipeline = [
             {'$match': {'discord_id': {'$in': membros_servidor}}},
             {'$sort': {campo_ordenacao: -1}},
-            {'$project': {'discord_id': 1, 'moedas': 1, 'vitorias': 1, '_id': 0}},
+            {'$project': {'discord_id': 1, 'moedas': 1, 'vitorias': 1,
+                          '_id': 0}},
             {'$skip': skip},
             {'$limit': 5}
         ]
@@ -273,7 +303,8 @@ class EconomyCog(commands.Cog):
             membro = ctx.guild.get_member(nome)
 
             avatar_url = membro.display_avatar
-            avatar = Image.open(BytesIO(requests.get(avatar_url.__str__()).content))
+            avatar = Image.open(
+                BytesIO(requests.get(avatar_url.__str__()).content))
             avatar = avatar.resize((110, 110))
 
             cor_fundo_avatar = (60, 60, 60)
